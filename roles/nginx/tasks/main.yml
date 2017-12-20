@@ -1,0 +1,7 @@
+- name: nginx is installed
+  apt: name="{{ item }}" state=installed
+  with_items:
+     - "{{ nginx }}"
+  tags: install_enable_nginx
+- name: nginx is running and enabled
+  service: name=nginx state=started enabled=yes
