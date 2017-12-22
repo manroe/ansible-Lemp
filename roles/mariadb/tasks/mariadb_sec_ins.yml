@@ -1,0 +1,58 @@
+- name: add .my.cnf
+  template: src=my.cnf.j2 dest=/root/.my.cnf owner=root group=root mode=0600
+
+- name: update mariadb root pwd
+  mysql_user: 
+       name: root
+       host: "{{ item }}"
+       password: "{{ mysql_root_pass }}"
+       #login_unix_socket: /var/run/mysqld/mysqld.sock
+       #host_all: yes
+       #priv: '*.*:ALL,GRANT'
+       state: present
+  with_items:
+       #- "{{ ansible_hostname }}"
+       #- 127.0.0.1
+       #- ::1
+       - localhost
+
+#- name: add .my.cnf
+  #template: src=my.cnf.j2 dest=~/.my.ncf owner=root group=root mode=0600
+#  template: 
+#      src: "my.cnf.j2"
+#      dest: "/root/.my.cnf"
+#      owner: root
+#      group: root
+#      mode: 0600
+
+- name: restart mariadb
+  service:
+       name: mysql
+       state: restarted
+       enabled: yes
+
+- name: remove anonymous user
+  command: mysql -ne "{{ item }}"
+  with_items: 
+        - DELETE FROM mysql.user WHERE User=''
+  changed_when: False
+
+- name: Disallow root login remotely
+  command: 'mysql -ne "{{ item }}"'
+  with_items:
+     - DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')
+  changed_when: False
+
+- name: remove test db
+  command: 'mysql -ne "{{ item }}"'
+  with_items:
+       - DROP DATABASE test
+       - DELETE FROM mysql.db where Db='test' OR Db='test\\_%'
+  changed_when: False
+  ignore_errors: True
+
+- name: reload privilege tables
+  command: 'mysql -ne "{{ item }}"'
+  with_items:
+       - FLUSH PRIVILEGES
+  changed_when: False
