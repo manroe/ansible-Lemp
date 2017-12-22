@@ -1,0 +1,28 @@
+- name: install software-properties-common
+  apt: name=software-properties-common state=installed
+
+- name: add repo key
+  apt_key: 
+       url: https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0xF1656F24C74CD1D8
+       state: present
+
+- name: add repo file
+  apt_repository:  
+         repo: deb [arch=amd64,i386,ppc64el] http://kartolo.sby.datautama.net.id/mariadb/repo/10.0/ubuntu xenial main
+
+- name: update apt cache
+  apt:
+     update_cache: yes
+
+- name: install mariadb
+  apt:
+      name: "{{ item }}"
+      state: installed
+  with_items:
+     - mariadb-server
+     - mariadb-client
+     - python-mysqldb   #for ansible to connect
+     - libmysqlclient-dev  #for mariadb client bindings
+
+#- include: mariadb_sec_ins.yml   =>previous command
+- import_tasks: mariadb_sec_ins.yml
