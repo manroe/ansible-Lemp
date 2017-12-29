@@ -1,0 +1,7 @@
+- name: Install MARIADB
+  hosts: test_server
+  become_method: sudo
+  become : yes
+  roles:
+     - update
+     - mariadb

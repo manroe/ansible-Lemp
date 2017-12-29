@@ -1,0 +1,8 @@
+- name: Install NGINX, PHP
+  hosts: test_server
+  become_method: sudo
+  become : yes
+  roles:
+     - update
+     - nginx
+     - php
